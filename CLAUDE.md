@@ -24,21 +24,29 @@ python generate_cards.py
 ## Dependencies
 
 - Python 3.10+ (uses `dict | None` union syntax)
-- `requests`, `python-dotenv` — API calls and env loading
-- `playwright` — HTML-to-PNG rendering (needs `playwright install chromium`)
+- `requests`, `python-dotenv` — in `requirements.txt`
+- `playwright` — HTML-to-PNG rendering (not in requirements.txt; install separately with `pip install playwright && playwright install chromium`)
 
 ## Key External Services
 
 - **OpenRouter API** (`OPENROUTER_API_KEY` in `.env`) — routes to:
   - `meta-llama/llama-3.3-70b-instruct` for recipe structuring
-  - `openai/gpt-5-image-mini` for food photo generation
+  - `openai/gpt-5-image-mini` for food photo generation (returns base64 images)
 
 ## Data Flow
 
 - `recipes.json` — Raw scraped Reddit posts (source of truth, ~1MB)
 - `generated.json` — Set of recipe IDs already processed (prevents re-processing)
-- `cards/` — Output directory containing per-recipe: `.html` (card source), `.png` (rendered card), `.json` (structured recipe metadata)
+- `cards/` — Output directory containing per-recipe: `.png` (AI-generated card image), `.json` (structured recipe metadata)
+
+## Card Generation Process
+
+`generate_cards.py` has two stages per recipe:
+1. **LLM structuring** (`structure_recipe`) — Sends raw Reddit post to Llama 3.3 to extract title, subtitle, ingredients, steps, pro tips, cook method, and category as JSON.
+2. **Image generation** (`generate_card_image`) — Sends a detailed prompt to GPT image model describing a 3-layer composition: background ingredients, hero dish, and parchment recipe card. The AI generates the complete card as a single image (no HTML rendering for final output).
+
+Recipe filtering for candidates: `signal_count >= 6`, `body > 120 chars`, not in `generated.json`, sorted by Reddit score descending.
 
 ## Card Design
 
-Cards are 1080×1350px (Instagram portrait). Full-bleed AI food photo with a parchment-textured recipe tag overlay (bottom-right, slight rotation). "Campfire Kitchen" branding badge top-left. Uses Google Fonts (Playfair Display, Lora, Open Sans). Title font size scales dynamically based on title length.
+Cards are 1080×1350px (Instagram portrait). The AI-generated image contains: raw ingredients in rustic bowls as background, the hero dish prominently placed, and a torn notebook-style parchment page with the recipe text. "Campfire Kitchen" branding. Cook method maps to specific outdoor cooking settings (camp grill, dutch oven, cast iron, foil packets, etc.).

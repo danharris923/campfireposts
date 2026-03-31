@@ -96,6 +96,10 @@ def generate_card_image(recipe: dict) -> bytes | None:
     # Format ingredients as a bullet list for the prompt
     ing_list = "\n".join(f"• {ing}" for ing in ingredients)
 
+    # Build condensed steps summary for the parchment
+    steps = recipe.get("steps", [])
+    steps_list = "\n".join(f"{i}. {s}" for i, s in enumerate(steps, 1))
+
     prompt = f"""Generate a beautiful food photography recipe card image in portrait orientation (3:4 aspect ratio).
 
 COMPOSITION — three layers, all in ONE image:
@@ -107,6 +111,9 @@ Title (large, bold, uppercase): {title}
 Subtitle (italic, smaller): "{subtitle}"
 Header (underlined): INGREDIENTS
 {ing_list}
+
+Header (underlined): HOW TO MAKE
+{steps_list}
 
 STYLE: Professional food photography with NEUTRAL, natural daylight color balance. NO yellow/amber/orange color cast — the lighting should look like a bright overcast day or clean natural light, NOT smoky firelight. Colors should be true-to-life: whites look white, greens look green, food has its real colors. Shallow depth of field on the background ingredients, the featured dish is sharp and vibrant. The parchment recipe card looks weathered and aged with slight coffee stains. The recipe card should NOT cover or block the featured dish — it sits to the left while the dish is to the right.
 
